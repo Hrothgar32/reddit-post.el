@@ -43,5 +43,5 @@
 
 (defvar blog-base-url "https://blog.almoszediu.com/posts/")
 
-(provide 'reddit-post)
+(provide 'reddit-post.el)
 ;;; reddit-post.el ends here
