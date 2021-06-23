@@ -1,4 +1,4 @@
-;;; reddit-post.el --- A package for me to post blog articles to reddit -*- lexical-binding: t; -*-
+;;; reddit-post.el --- A package to post blog articles to reddit -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (C) 2021 Almos-Agoston Zediu
 ;;
@@ -36,6 +36,7 @@
 (require 'json)
 (require 'cl-lib)
 (require 's)
+(require 'org)
 
 (defvar reddit-post--version "0.0.1"
   "The current version of the package.")
@@ -112,9 +113,6 @@
           reddit-post--oauth-client-id
           reddit-post--oauth-redirect-uri))
 
-(cl-defun generic-callback (&rest data &allow-other-keys)
-  (message data))
-
 (defun reddit-post--oauth-fetch-authorization-token ()
   "Make the initial code request for OAuth."
   (request-response-data
@@ -135,16 +133,39 @@
   (interactive "sPlease enter the code you received from the browser: ")
   (setq reddit-post--oauth-code (s-trim code)))
 
-(defun reddit-post--post-article (title link)
-  (request-response-data
-   (request reddit-post--submit-url
-     :complete nil
-     :data (format "sr=test&title=%s&url=%s" title link)
-     :sync nil
-     :type "POST"
-     :parser #'json-read
-     :headers `(("User-Agent" . "post.el")
-                ("Authorization" . ,(format "bearer %s" reddit-post--oauth-access-token))))))
+(defvar blogpost-title "")
+
+(defun reddit-post--get-blogpost-name()
+  "Get the title of the blogpost."
+  (search-forward "EXPORT_FILE_NAME: ")
+  (push-mark (point) nil t)
+  (end-of-line)
+  (copy-region-as-kill nil nil t)
+  (substring-no-properties (current-kill 0)))
+
+(defun reddit-post--construct-post-title (blogpost-name-string)
+ (let* ((blogpost-name (split-string blogpost-name-string "-")))
+        (while (> (safe-length blogpost-name) 0)
+        (if (= (safe-length blogpost-name) 1 )
+        (setq blogpost-title(concat blogpost-title (capitalize(pop blogpost-name))))
+        (setq blogpost-title(concat blogpost-title (capitalize(pop blogpost-name))" "))))))
+
+(defun reddit-post--post-article (subreddit)
+  (interactive (list (read-string "Name of subreddit: ")))
+  (let* ((blogpost-name (reddit-post--get-blogpost-name))
+         (blogpost-link (concat reddit-post--blog-base-url blogpost-name)))
+        (reddit-post--construct-post-title blogpost-name)
+        (request-response-data
+                (request reddit-post--submit-url
+                :complete nil
+                :data (format "sr=%s&title=%s&url=%s" subreddit blogpost-title blogpost-link)
+                :sync nil
+                :type "POST"
+                :parser #'json-read
+                :headers `(("User-Agent" . "post.el")
+                                ("Authorization" . ,(format "bearer %s" reddit-post--oauth-access-token)))))
+        (setq blogpost-title "")
+        (org-backward-paragraph 2)))
 
 ;;;###autoload
 (defun reddit-post--login ()
