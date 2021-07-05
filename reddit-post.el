@@ -60,7 +60,7 @@
 (defvar reddit-post--oauth-access-token "")
 (defvar reddit-post--oauth-refresh-token "")
 
-(defvar reddit-post--blog-base-url "https://blog.almoszediu.com/posts/")
+(defvar reddit-post--blog-base-url "")
 
 (defvar reddit-post--oauth-redirect-uri
   "https://almoszediu.com"

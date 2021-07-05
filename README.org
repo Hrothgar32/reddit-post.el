@@ -1,3 +1,42 @@
 #+TITLE: README
+* What is this?
+Reddit-post is a package which allows you to publish your blog post written in a
+Hugo compatible org-document (using the [[https://ox-hugo.scripter.co/][ox-hugo]] package) to Reddit.
 
-Initial commit.
+I took heavy inspiration for the login flow from Matthew Carter's brilliant
+[[https://github.com/ahungry/md4rd][md4rd]] project which is a complete and functional Reddit client for Emacs. Go
+check it out!
+
+* Installation
+** Doom Emacs
+#+begin_src emacs-lisp
+(package! reddit-post.el
+  :recipe (:host github
+           :repo "Hrothgar32/reddit-post.el"
+           :files ("*.el" "filters" "preprocessors")))
+#+end_src
+
+** With straight
+#+begin_src emacs-lisp
+(straight-use-package
+ '(reddit-post.el :type git :host github :repo "Hrothgar32/reddit-post.el"))
+#+end_src
+
+* Initial authentication
+Invoke the =reddit-post--login= function which will forward you to reddit for
+you to allow permissions to the package, and after that you can copy the
+required oauth refresh token from my site into the Emacs minibuffer-prompt.
+
+* Configuration
+#+begin_src emacs-lisp
+(use-package reddit-post.el
+  :config
+  (setq reddit-post--oauth-refresh-token "your-refresh-token")
+  (setq reddit-post--blog-base-url "your-blog-url"))
+#+end_src
+
+* How to use it
+Navigate to the Org subtree in which your blog post resides. Invoke the
+=reddit-post--post-article= function. This will ask you the name of the
+subreddit you want to publish your article to. Input your chosen subreddit, and
+it's done! And you never had to leave Emacs for it.
